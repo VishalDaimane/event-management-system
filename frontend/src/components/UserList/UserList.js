@@ -4,11 +4,13 @@ import UserListRow from "./UserListRow";
 
 import "./UserList.css";
 
+const API_ROUTE = "http://localhost:4000";
+
 function UserList()
 {
     const [arr,setArr] = useState([]);
     useEffect(()=>{
-        Axios.get("https://eventhub-t514.onrender.com/eventRoute/user-list")
+        Axios.get(API_ROUTE + "/eventRoute/user-list")
         .then((res)=>{
             if(res.status === 200)
                 setArr(res.data);

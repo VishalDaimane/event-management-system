@@ -3,6 +3,8 @@ import Axios from "axios";
 
 import './ContactPage.css'; 
 
+const API_ROUTE = "http://localhost:4000";
+
 class ContactPage extends Component {
   constructor(props) {
     super(props);
@@ -42,7 +44,7 @@ class ContactPage extends Component {
         message: this.state.message,
       };
 
-      Axios.post("https://eventhub-t514.onrender.com/eventRoute/post-feedback", newFeedback)
+      Axios.post(API_ROUTE + "/eventRoute/post-feedback", newFeedback)
       .then((res) => {
         if(res.status === 200)
           alert("Thank you for your feedback!");

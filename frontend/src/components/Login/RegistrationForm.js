@@ -3,6 +3,8 @@ import Axios from "axios";
 
 import './register.css';
 
+const API_ROUTE = "http://localhost:4000";
+
 const RegistrationForm = (props) => {
   const [formData, setFormData] = useState({
     username: `${props.usernameValue}`,
@@ -81,7 +83,7 @@ const RegistrationForm = (props) => {
 
     // If no validation errors, you can proceed with form submission logic
     if (props.action === "create")
-    {Axios.post('https://eventhub-t514.onrender.com/eventRoute/create-user', formData)
+    {Axios.post(API_ROUTE + '/eventRoute/create-user', formData)
     .then((res) => {
       if(res.status === 200)
       {
@@ -104,7 +106,7 @@ const RegistrationForm = (props) => {
       console.log("From form page:",userData);
       Axios.all([
         // Updating user records
-        Axios.put("https://eventhub-t514.onrender.com/eventRoute/update-user/" + props.id, userData)
+        Axios.put(API_ROUTE + "/eventRoute/update-user/" + props.id, userData)
         .then(response => {
           alert('User updated successfully');
 
@@ -113,7 +115,7 @@ const RegistrationForm = (props) => {
           console.error('Error updating user:', error);
         }),
 
-        Axios.get("https://eventhub-t514.onrender.com/eventRoute/event-list")
+        Axios.get(API_ROUTE + "/eventRoute/event-list")
         .then((eventResponse) => {
             if(eventResponse.status === 200){
                 //Finding events where current user is registered
@@ -124,7 +126,7 @@ const RegistrationForm = (props) => {
                     eventData.registeredUsers = [...eventData.registeredUsers,
                       {username: userData.username, fullName: userData.fullName,
                         email: userData.email, phone: userData.phone} ]
-                    Axios.put("https://eventhub-t514.onrender.com/eventRoute/update-event/" + collectedEvents[i]._id, eventData)
+                    Axios.put(API_ROUTE + "/eventRoute/update-event/" + collectedEvents[i]._id, eventData)
                     .then((updateResponse) => {
                         if(updateResponse.status === 200)
                             console.log("Event details updated")

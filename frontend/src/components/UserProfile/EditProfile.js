@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import Axios from "axios";
 import RegistrationForm from "../Login/RegistrationForm";
 
+const API_ROUTE = "http://localhost:4000";
+
 function UserUpdateForm() {
   const [formData, setFormData] = useState({
    
@@ -18,7 +20,7 @@ function UserUpdateForm() {
   useEffect(() => {
    
     const user = localStorage.getItem('user');
-    Axios.get("https://eventhub-t514.onrender.com/eventRoute/check-user/" + user)
+    Axios.get(API_ROUTE + "/eventRoute/check-user/" + user)
       .then(response => {
         {
           setFormData(

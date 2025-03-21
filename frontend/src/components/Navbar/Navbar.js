@@ -1,99 +1,172 @@
-import { useState, useEffect } from "react";
-import {Link} from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Menu, 
+  X, 
+  User, 
+  LogOut, 
+  Calendar, 
+  Settings,
+  Users,
+  PlusCircle,
+  BookOpen
+} from 'lucide-react';
+import toast from 'react-hot-toast';
+import './Navbar.css';
 
-import {BiSolidUserCircle} from "react-icons/bi";
-import Logo from "../../assets/logo_circle.jpg";
+const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
-import "./Navbar.css";
+  const user = JSON.parse(localStorage.getItem('user'));
+  const isAdmin = user?.role === 'admin';
 
-export default function Navbar(props){
-    const [user, setUser] = useState();
+  useEffect(() => {
+    const handleScroll = () => {
+      const offset = window.scrollY;
+      setScrolled(offset > 50);
+    };
 
-    useEffect(() => {
-        setInterval(() => {
-            const user = localStorage.getItem("user");
-            setUser(user);
-        }, [])
-    }, 5000)
-    
-    const logout = () => {
-        localStorage.setItem("loginStatus", false);
-        return localStorage.removeItem("user");
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    toast.success('Logged out successfully');
+    navigate('/login');
+    setDropdownOpen(false);
+  };
+
+  const closeMenu = () => {
+    setIsOpen(false);
+    setDropdownOpen(false);
+  };
+
+  const navigationLinks = [
+    {
+      to: "/events",
+      label: "Events",
+      icon: <Calendar size={20} />,
+      visible: true
+    },
+    {
+      to: "/booked-events",
+      label: "My Bookings",
+      icon: <BookOpen size={20} />,
+      visible: !!user
+    },
+    {
+      to: "/create-event",
+      label: "Create Event",
+      icon: <PlusCircle size={20} />,
+      visible: isAdmin
+    },
+    {
+      to: "/admin/users",
+      label: "Manage Users",
+      icon: <Users size={20} />,
+      visible: isAdmin
     }
+  ];
 
-    if (user === "admin"){
-        return(
-            <nav class="navbar navbar-expand-lg">
-                <div class = "container-fluid box">
-                <img className = "logo" src = {Logo}></img>
-                <div class="menu">
-                    <ul>
-                    <li><Link to = "/">Home</Link></li>
-                    <li><Link to = "/view-event">View Events</Link></li>
-                    <li><Link to = "/create-event">Create Event</Link></li>
-                    <li><Link to = "/view-user">View Users</Link></li>
-                </ul>
-                </div>
-                <div class = "dropdown">
-                    <button class = "dropbtn">
-                        <BiSolidUserCircle className="usericon admin"/>
-                        {user}
-                    </button>
-                    <div class = "dropdown-content admin">
-                        <Link to = "/" onClick={logout}>Logout</Link>
-                    </div>
-                    
-                </div>
+  return (
+    <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
+      <div className="navbar-container">
+        <Link to="/" className="navbar-logo" onClick={closeMenu}>
+          <img src="/logo_circle.jpg" alt="GoPlanMe" height="40" />
+          <span>GoPlanMe</span>
+        </Link>
+
+        <div className="mobile-toggle" onClick={() => setIsOpen(!isOpen)}>
+          {isOpen ? <X size={24} /> : <Menu size={24} />}
+        </div>
+
+        <div className={`navbar-content ${isOpen ? 'active' : ''}`}>
+          <div className="nav-links">
+            {navigationLinks.map((link, index) => 
+              link.visible && (
+                <Link
+                  key={index}
+                  to={link.to}
+                  className={`nav-link ${location.pathname === link.to ? 'active' : ''}`}
+                  onClick={closeMenu}
+                >
+                  {link.icon}
+                  {link.label}
+                </Link>
+              )
+            )}
+
+            {!user && (
+              <>
+                <Link 
+                  to="/login" 
+                  className={`nav-link ${location.pathname === '/login' ? 'active' : ''}`}
+                  onClick={closeMenu}
+                >
+                  Login
+                </Link>
+                <Link 
+                  to="/register" 
+                  className="nav-button"
+                  onClick={closeMenu}
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
+          </div>
+
+          {user && (
+            <div className="nav-actions">
+              <div className="user-dropdown">
+                <button 
+                  className="dropdown-trigger"
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                >
+                  <div className="user-avatar">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="user-name">{user.name}</span>
+                </button>
+
+                <AnimatePresence>
+                  {dropdownOpen && (
+                    <motion.div
+                      className="dropdown-menu"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Link to="/edit-profile" className="dropdown-item" onClick={closeMenu}>
+                        <User size={16} />
+                        Profile
+                      </Link>
+                      <Link to="/settings" className="dropdown-item" onClick={closeMenu}>
+                        <Settings size={16} />
+                        Settings
+                      </Link>
+                      <button className="dropdown-item logout" onClick={handleLogout}>
+                        <LogOut size={16} />
+                        Logout
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
-            </nav> 
-        )
-    }
+          )}
+        </div>
+      </div>
+    </nav>
+  );
+};
 
-    else if(user){
-        return(
-            <nav class="navbar navbar-expand-lg">
-                <div class="container-fluid box"> 
-                <img className = "logo" src = {Logo}></img>
-                <div class="menu">
-                    <ul>
-                    <li><Link to = "/">Home</Link></li>
-                    <li><Link to = "/view-event">Events</Link></li>
-                    <li><Link to = "/contact">CONTACT US</Link></li>
-                </ul>
-                </div>
-                <div class = "dropdown">
-                    <button class = "dropbtn">
-                        <BiSolidUserCircle className="usericon user"/>
-                        {user}
-                    </button>
-                    <div class = "dropdown-content user">
-                        <Link to = "/edit-profile">Edit Profile</Link>
-                        <Link to = "/booked-events">Booked Events</Link>
-                        <Link to = "/" onClick={logout}>Logout</Link>
-                    </div>
-                    
-                </div>
-            </div>
-            </nav> 
-        )
-    }
-    else{
-        return(
-            <nav class="navbar navbar-expand-lg">
-                <div class="container-fluid box">
-                <img className = "logo" src = {Logo}></img>
-                <div class="menu">
-                    <ul>
-                    <li><Link to = "/">Home</Link></li>
-                    <li><Link to = "/contact">CONTACT US</Link></li>
-                </ul>
-                </div>
-                </div>
-            </nav> 
-        )
-    }
-
-    
-    
-    
-}
+export default Navbar;

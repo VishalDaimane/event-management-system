@@ -1,307 +1,233 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Card from 'react-bootstrap/Card';
-import Axios from "axios";
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Calendar, MapPin, Users, Clock, Edit, Trash2, CheckCircle, User } from 'lucide-react';
+import axios from 'axios';
+import toast from 'react-hot-toast';
 
-import "./Events.css";
+const EventCard = ({ event, isAdmin, onEventDeleted, fetchEvents }) => {
+  const [showBookings, setShowBookings] = useState(false);
 
-function EventCard(props){
-    const navigate = useNavigate();
-    // Extracting event details from database
-    const {_id, name, date, place, club, description, slots, startTime, endTime, registeredUsers} = props.obj;
-    let year = date.slice(0,4);
-    let month = date.slice(5,7);
-    let day = date.slice(8,10);
+  const [bookedUsers, setBookedUsers] = useState([]);
 
-    const user = localStorage.getItem("user");// Get current user
+  const token = localStorage.getItem('token');
+  const user = JSON.parse(localStorage.getItem('user'));
 
-    // Function to book event
-    const Book = () => {
-        
-        
-        Axios.get("https://eventhub-t514.onrender.com/eventRoute/check-user/" + user)
-        .then((res) => {
-            if(res.status === 200){
-                if(res.data != null){
-                    const check = res.data.bookedEvents.some(e => e._id === props.obj._id);
-                    if (check){
-                        alert("Event already registered");
-                    }
+  const handleDeleteEvent = async () => {
+    if (!isAdmin) return;
 
-                    else if (slots === 0){
-                        alert("Slots Full! Cannot register");
-                    }
+    if (window.confirm('Are you sure you want to delete this event?')) {
+      try {
+        await axios.delete(`http://localhost:3001/events/${event._id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        toast.success('Event deleted successfully');
+        if (onEventDeleted) onEventDeleted(event._id);
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'Failed to delete event');
+      }
+    }
+  };
 
-                    else{
-
-                        //Data for user updation
-                        const userData = res.data;
-                        // const data = {username: user, fullName: res.data.fullName,
-                        // email: res.data.email, phone: res.data.phone, password: res.data.password,
-                        userData.bookedEvents = [...userData.bookedEvents,
-                            {_id, name, date, place, club, description, startTime, endTime}];
-
-                        //Data for event updation
-                        const eventData = props.obj;
-                        eventData.slots = eventData.slots - 1;
-                        eventData.registeredUsers = [...eventData.registeredUsers, 
-                            {username: user, fullName: res.data.fullName,
-                            email: res.data.email, phone: res.data.phone}];
-
-                        Axios.all([
-                        // Updating user information and adding event
-                        Axios.put("https://eventhub-t514.onrender.com/eventRoute/update-user/" + res.data._id, userData)
-                        .then((updateResponse) => {
-                            if(updateResponse.status === 200)
-                                alert("Event Booked");
-                            
-                            else
-                                Promise.reject();
-                        })
-                        .catch((updateError) => alert(updateError)),
-                        
-                        
-                        // Updating event information by adding user and reducing slots
-                        Axios.put("https://eventhub-t514.onrender.com/eventRoute/update-event/" + _id, eventData)
-                        .then((eventUpdateResponse) => {
-                            if(eventUpdateResponse.status === 200)
-                            {    
-                                console.log("Slot count reduced");
-                                       
-                            }
-                            else
-                                Promise.reject();
-                            })
-                        .catch((eventUpdateError) => alert(eventUpdateError))
-
-                        ])
-                    }
-                }
-            }
-            else
-                Promise.reject();
-            }
-            
-        )
-        .catch((err) => alert(err));
-        
-
+  const handleBookEvent = async () => {
+    if (!token || !user) {
+      toast.error('Please login to book events');
+      return;
     }
 
-    // Function to view list of all registered users
-    const registeredUserItems = () => {
-        return registeredUsers.map((val, index) => {
-            return(
-                <tr>
-                    <td>{val.username}</td>
-                    <td>{val.fullName}</td>
-                    <td>{val.email}</td>
-                    <td>{val.phone}</td>    
-                </tr>
-            )
-        })
-    }
-    const viewRegisteredUsers = () => {
-        setDescription(
-            <table className='userTable' border = "1" bordercolor = "white" cellspacing = "0" cellpadding = "5">
-                <thead>
-                    <tr>
-                        <th class = "text-center">Username</th>
-                        <th class = "text-center">Full Name</th>
-                        <th class = "text-center">Email</th>
-                        <th class = "text-center">Phone</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {registeredUserItems()}
-                </tbody>
-            </table>
-        )
-        setUpdateButton(
-            <button className='cardButton' style={{"backgroundColor": "green"}} onClick={updateEvent}>
-                Update
-            </button>
-            )
-            setActionButton( 
-            <div>
-            <button className='cardButton' style={{"backgroundColor": "#ff7200"}} onClick={closeRegisteredUsers}>
-                Close Users
-            </button>
-            <button className='cardButton' style={{"backgroundColor": "red"}} onClick={deleteEvent}>
-                Delete
-            </button>
-            
-            </div>
-            
-            );
-    }
-    const closeRegisteredUsers = () => {
-        setDescription(
-            <Card.Text style={{fontSize:"1.75vw", fontWeight:"bolder"}}>
-            Date: {day}-{month}-{year}<br></br>
-            Time: {startTime} to {endTime}<br></br>
-            Place: {place}<br></br>
-            {props.slotsLeft}
-            </Card.Text>
-        )
-        setUpdateButton(
-            <button className='cardButton' style={{"backgroundColor": "green"}} onClick={updateEvent}>
-                Update
-            </button>
-            )
-            setActionButton( 
-            <div>
-            <button className='cardButton' style={{"backgroundColor": "#ff7200"}} onClick={viewRegisteredUsers}>
-                Registered Users
-            </button>
-            <button className='cardButton' style={{"backgroundColor": "red"}} onClick={deleteEvent}>
-                Delete
-            </button>
-            
-            </div>
-            
-            )
-    }
-     
-    // Function to delete event
-    const deleteEvent = () => {
-        Axios.all([ 
-        Axios.delete("https://eventhub-t514.onrender.com/eventRoute/delete-event/" + _id)
-        .then((res) => {
-            if(res.status === 200){
-                alert("Event deleted successfully");
-                window.location.reload();
-            }
-            else
-                Promise.reject();
-        })
-        .catch((err) => alert(err)),
+    const loadingToast = toast.loading('Booking event...');
 
-        Axios.get("https://eventhub-t514.onrender.com/eventRoute/user-list")
-        .then((userResponse) => {
-            if(userResponse.status === 200){
-                // Finding users who have booked current event
-                const collectedUsers = userResponse.data;
-                for(let i = 0; i < collectedUsers.length; i++){
-                    let userData = collectedUsers[i];
-                    userData.bookedEvents = userData.bookedEvents.filter((event) => event._id !== _id);
-                    
-                    Axios.put("https://eventhub-t514.onrender.com/eventRoute/update-user/" + collectedUsers[i]._id, userData)
-                        .then((updateResponse) => {
-                            if(updateResponse.status === 200)
-                                console.log("User details updated")
-                            
-                            else
-                                Promise.reject();
-                        })
-                        .catch((updateError) => alert(updateError))
-                }
-                
-
-            }
-        } )
-    ])
-       
-    }
-
-    
-// Function to update event
-    const updateEvent = () => {
-        localStorage.setItem("eventID", _id);
-        navigate("/update-event");
-    }
-
-// Setting action button according to booking, viewing and admin privileges 
-    const [actionButton, setActionButton] = useState();
-
-    useEffect(() => {
-        if (props.action === "book"){
-            setActionButton(
-            <button className='cardButton' style={{"backgroundColor": "greenyellow"}} onClick={Book}>
-                Book Now!
-            </button>);
+    try {
+      const response = await axios.post(
+        `http://localhost:3001/events/${event._id}/book`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` }
         }
+      );
 
-        else if (props.action === "view"){
-            setActionButton();
-        }
-
-        if (user === "admin"){
-            setUpdateButton(
-            <button className='cardButton' style={{"backgroundColor": "green"}} onClick={updateEvent}>
-                Update
-            </button>
-            )
-            setActionButton( 
-            <div>
-            <button className='cardButton' style={{"backgroundColor": "#ff7200"}} onClick={viewRegisteredUsers}>
-                Registered Users
-            </button>
-            <button className='cardButton' style={{"backgroundColor": "red"}} onClick={deleteEvent}>
-                Delete
-            </button>
-            
-            </div>
-            
-            );
-        }
-    }, [])
-
-    
-
-    // Displaying description based on condition
-    const [desc, setDescription] = useState(
-        <Card.Text style={{fontSize:"1.75vw", fontWeight:"bolder"}}>
-            Date: {day}-{month}-{year}<br></br>
-            Time: {startTime} to {endTime}<br></br>
-            Place: {place}<br></br>
-            {props.slotsLeft}
-        </Card.Text>
-    )
-
-    const closeDescription = () => {
-        setDescription(
-            <Card.Text style={{fontSize:"1.75vw", fontWeight:"bolder"}}>
-            Date: {day}-{month}-{year}<br></br>
-            Time: {startTime} to {endTime}<br></br>
-            Place: {place}<br></br>
-            {props.slotsLeft}
-            </Card.Text>
-        )
-        setDescButton(
-            <button className='cardButton' style={{"backgroundColor":"wheat"}} onClick={viewDescription}>View Description</button>
-        )
+      if (response.data.success) {
+        toast.success('Event booked successfully!', {
+          id: loadingToast,
+        });
+        if (fetchEvents) fetchEvents();
+      }
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || 'Failed to book event',
+        { id: loadingToast }
+      );
     }
-    const viewDescription = () => {
-        setDescription(
-        <Card.Text style={{fontSize:"1.75vw", fontWeight:"bolder"}}>
-            {description}
-        </Card.Text> 
-        )
-        setDescButton(
-            <button className='cardButton' style={{"backgroundColor":"wheat"}} onClick={closeDescription}>Close Description</button>
-        )
-    } 
+  };
 
-    const [descButton, setDescButton] = useState(
-        <button className='cardButton' style={{"backgroundColor":"wheat"}} onClick={viewDescription}>View Description</button>
-    )
-    
-    const [updateButton, setUpdateButton] = useState();
-    
-    return (
-        <Card className='eventCard'>
-        <Card.Body>
-            <Card.Title style={{fontSize:"2vw", fontWeight:"bolder"}}>{name}</Card.Title>
-            <Card.Subtitle style={{fontSize:"1.3vw", fontWeight:"bold", "fontStyle":"italic"}}>{club}</Card.Subtitle>
-            {desc}
-            {descButton}
-            {updateButton}
-            {actionButton}
-        </Card.Body>
+  const handleCancelBooking = async () => {
+    if (!token || !user) {
+      toast.error('Please login first');
+      return;
+    }
+
+    const loadingToast = toast.loading('Cancelling booking...');
+
+    try {
+      const response = await axios.delete(
+        `http://localhost:3001/events/${event._id}/book`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      if (response.data.success) {
+        toast.success('Booking cancelled successfully!', {
+          id: loadingToast,
+        });
+        if (fetchEvents) fetchEvents();
+      }
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || 'Failed to cancel booking',
+        { id: loadingToast }
+      );
+    }
+  };
+
+  const getUserName = async (userId) => {
+    try {
+      const response = await axios.get(`http://localhost:3001/user/${userId}`);
+      return response.data.user.name;
+    } catch (error) {
+      return 'Unknown User';
+    }
+  };
+
+  useEffect(() => {
+    const fetchBookedUsers = async () => {
+      if (showBookings && event.bookedBy?.length > 0) {
+        const users = await Promise.all(event.bookedBy.map((userId) => getUserName(userId)));
+        setBookedUsers(users);
+      }
+    };
+
+    fetchBookedUsers();
+  }, [showBookings, event.bookedBy]);
+
+  const isEventFull = event.bookedBy?.length >= event.capacity;
+  const isAlreadyBooked = event.bookedBy?.includes(user?._id);
+  const availableSpots = event.capacity - (event.bookedBy?.length || 0);
+
+  return (
+    <motion.div 
+      className="event-card"
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.2 }}
+    >
+      <img src={event.image || '/assets/default-image.jpeg'} alt={event.title} className="event-image" />
+      <div className="event-content">
+        <h3 className="event-title">{event.title}</h3>
+        <div className="event-meta">
+          <div className="meta-item">
+            <Calendar size={16} />
+            {new Date(event.date).toLocaleDateString()}
+          </div>
+          <div className="meta-item">
+            <Clock size={16} />
+            {event.time}
+          </div>
+          <div className="meta-item">
+            <MapPin size={16} />
+            {event.venue}
+          </div>
+          <div className="meta-item">
+            <Users size={16} />
+            {availableSpots} spots left
+          </div>
+        </div>
+        <p className="event-description">{event.description}</p>
         
-        </Card>
-    );
+        {isAdmin && (
+          <div className="event-bookings">
+            <button 
+              className="view-bookings-btn"
+              onClick={() => setShowBookings(!showBookings)}
+            >
+              <Users size={16} />
+              {showBookings ? 'Hide Bookings' : 'View Bookings'} ({event.bookedBy?.length || 0})
+            </button>
+            
+            {showBookings && bookedUsers.length > 0 && (
+            <div className="bookings-list">
+              <h4>Booked Users:</h4>
+              <div className="booked-users">
+                {bookedUsers.map((userName, index) => (
+                  <div key={index} className="booked-user">
+                    <User size={14} />
+                    <span>{userName}</span>
+                  </div>
+                ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="event-footer">
+          <div className="event-price">
+            {event.price === 0 ? 'Free' : `₹${event.price}`}
+          </div>
+          <div className="event-actions">
+            {isAdmin ? (
+              <>
+                <Link to={`/update-event/${event._id}`}>
+                  <motion.button 
+                    className="action-button edit-action"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    title="Edit event"
+                  >
+                    <Edit size={16} />
+                    Edit
+                  </motion.button>
+                </Link>
+                <motion.button 
+                  className="action-button danger-action"
+                  onClick={handleDeleteEvent}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  title="Delete event"
+                >
+                  <Trash2 size={16} />
+                  Delete
+                </motion.button>
+              </>
+            ) : (
+              <>
+                {isAlreadyBooked ? (
+                  <motion.button
+                    className="action-button cancel-action"
+                    onClick={handleCancelBooking}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <CheckCircle size={16} />
+                    Cancel Booking
+                  </motion.button>
+                ) : (
+                  <motion.button
+                    className={`action-button ${isEventFull ? 'disabled-action' : 'primary-action'}`}
+                    onClick={handleBookEvent}
+                    disabled={isEventFull}
+                    whileHover={!isEventFull ? { scale: 1.05 } : {}}
+                    whileTap={!isEventFull ? { scale: 0.95 } : {}}
+                  >
+                    {isEventFull ? 'Event Full' : 'Book Now'}
+                  </motion.button>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
 };
 
 export default EventCard;

@@ -1,12 +1,14 @@
 import Axios from "axios";
 import { Link } from "react-router-dom";
 
+const API_ROUTE = "http://localhost:4000";
+
 function UserListRow(props) {
     const { _id, username, fullName, email, phone, password, bookedEvents} = props.obj; //Object destruction
 
     const handleClick = () => {
         Axios.all([
-            Axios.delete("https://eventhub-t514.onrender.com/eventRoute/delete-user/" + _id)
+            Axios.delete(API_ROUTE + "/eventRoute/delete-user/" + _id)
             .then((res) => {
                 if (res.status === 200) {
                     alert("Record deleted successfully");
@@ -17,7 +19,7 @@ function UserListRow(props) {
             })
             .catch((err) => alert(err)),
 
-            Axios.get("https://eventhub-t514.onrender.com/eventRoute/event-list")
+            Axios.get(API_ROUTE + "/eventRoute/event-list")
             .then((eventResponse) => {
                 if(eventResponse.status === 200){
                     //Finding events where current user is registered
@@ -26,7 +28,7 @@ function UserListRow(props) {
                         let eventData = collectedEvents[i];
                         eventData.registeredUsers = eventData.registeredUsers.filter((user) => user.username !== username);
 
-                        Axios.put("https://eventhub-t514.onrender.com/eventRoute/update-event/" + collectedEvents[i]._id, eventData)
+                        Axios.put(API_ROUTE + "/eventRoute/update-event/" + collectedEvents[i]._id, eventData)
                         .then((updateResponse) => {
                             if(updateResponse.status === 200)
                                 console.log("Event details updated")
