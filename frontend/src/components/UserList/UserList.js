@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import UserListRow from "./UserListRow";
 
 import "./UserList.css";
+import toast from "react-hot-toast";
 
 const API_ROUTE = "http://localhost:4000";
 
@@ -17,7 +18,7 @@ function UserList()
             else
                 Promise.reject();
         })
-        .catch((err)=> alert(err));
+        .catch((err)=> toast.error("Error fetching user list"));
     },[]);
 
     const ListItems = () =>{

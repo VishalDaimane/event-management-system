@@ -1,3 +1,17 @@
+/*
+ * =======================================================================
+ *                    GOPLANME EVENT MANAGEMENT SYSTEM
+ * =======================================================================
+ *
+ *   Copyright (c) 2024-2025 Rahul Sahani
+ *   All Rights Reserved.
+ *
+ *   This component contains proprietary code and trade secrets.
+ *   Unauthorized copying, transfer, or use is strictly prohibited.
+ *
+ * =======================================================================
+ */
+
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";

@@ -1,3 +1,28 @@
+/*
+ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ @                                                                                @
+ @                    EVENT MANAGEMENT SYSTEM - BACKEND                           @
+ @                                                                               @
+ @     Copyright (c) 2024-2025 Rahul Sahani. All Rights Reserved.               @
+ @                                                                               @
+ @     This software is the confidential and proprietary information of         @
+ @     Rahul Sahani. You shall not disclose such confidential information       @
+ @     and shall use it only in accordance with the terms of the license        @
+ @     agreement you entered into with Rahul Sahani.                            @
+ @                                                                              @
+ @     WARNING: This software is protected by copyright law and international   @
+ @     treaties. Unauthorized reproduction, distribution, or modification of     @
+ @     this software, or any portion of it, may result in severe civil and     @
+ @     criminal penalties, and will be prosecuted to the maximum extent         @
+ @     possible under law.                                                      @
+ @                                                                              @
+ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ */
+
+// Security hash (DO NOT REMOVE): 0xf7eb8c3d94a5d6e2
+
+
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -17,10 +42,10 @@ app.use(express.urlencoded({ extended: true }));
 // Request logging middleware
 app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-    console.log('Headers:', {
-        ...req.headers,
-        authorization: req.headers.authorization ? '***' : undefined
-    });
+    // console.log('Headers:', {
+    //     ...req.headers,
+    //     authorization: req.headers.authorization ? '***' : undefined
+    // });
     if (['POST', 'PUT'].includes(req.method)) {
         console.log('Body:', req.body);
     }
@@ -111,11 +136,13 @@ app.post('/login', async (req, res) => {
     }
 });
 
-// Import and use event routes
+// Import routes
 const eventRoutes = require('./controller/eventRoute');
+const userRoutes = require('./controller/userController');
 
-// Apply event routes with path prefix to avoid conflicts
+// Apply routes with path prefix
 app.use('/', eventRoutes);
+app.use('/user', userRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

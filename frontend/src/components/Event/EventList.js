@@ -2,23 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
-  Calendar, 
-  MapPin, 
-  Users, 
   Plus, 
   Search,
-  Calendar as CalendarIcon,
   Filter,
-  Clock
+  RefreshCw,
+  AlertCircle,
+  Calendar
 } from 'lucide-react';
-import toast from 'react-hot-toast';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 import EventCard from './EventCard';
 import './Events.css';
 
 const EventList = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
     search: '',
     category: 'all',
@@ -28,21 +27,24 @@ const EventList = () => {
   const user = JSON.parse(localStorage.getItem('user'));
   const isAdmin = user?.role === 'admin';
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
   const fetchEvents = async () => {
     try {
+      setLoading(true);
+      setError(null);
       const response = await axios.get('http://localhost:3001/events');
       setEvents(response.data);
     } catch (error) {
       console.error('Error fetching events:', error);
+      setError('Failed to load events');
       toast.error('Failed to load events');
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -50,6 +52,10 @@ const EventList = () => {
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleRetry = () => {
+    fetchEvents();
   };
 
   const filteredEvents = events.filter(event => {
@@ -86,6 +92,24 @@ const EventList = () => {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="events-page">
+        <div className="events-container">
+          <div className="error-state">
+            <AlertCircle size={48} />
+            <h3>Error Loading Events</h3>
+            <p>{error}</p>
+            <button className="retry-button" onClick={handleRetry}>
+              <RefreshCw size={16} />
+              Retry
+            </button>
           </div>
         </div>
       </div>
@@ -146,7 +170,7 @@ const EventList = () => {
 
           <div className="filter-group">
             <label>
-              <CalendarIcon size={16} />
+              <Calendar size={16} />
               Date
             </label>
             <input
@@ -175,8 +199,8 @@ const EventList = () => {
             ))
           ) : (
             <div className="empty-state">
-              <img src="/empty-events.svg" alt="No events found" />
-              <h3>No events found</h3>
+              <AlertCircle size={48} />
+              <h3>No Events Found</h3>
               <p>
                 {filters.search || filters.category !== 'all' || filters.date
                   ? 'Try adjusting your filters'

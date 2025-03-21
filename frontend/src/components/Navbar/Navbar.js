@@ -67,12 +67,12 @@ const Navbar = () => {
       icon: <PlusCircle size={20} />,
       visible: isAdmin
     },
-    {
-      to: "/admin/users",
-      label: "Manage Users",
-      icon: <Users size={20} />,
-      visible: isAdmin
-    }
+    // {
+    //   to: "/admin/users",
+    //   label: "Manage Users",
+    //   icon: <Users size={20} />,
+    //   visible: isAdmin
+    // }
   ];
 
   return (
@@ -149,10 +149,10 @@ const Navbar = () => {
                         <User size={16} />
                         Profile
                       </Link>
-                      <Link to="/settings" className="dropdown-item" onClick={closeMenu}>
+                      {/* <Link to="/settings" className="dropdown-item" onClick={closeMenu}>
                         <Settings size={16} />
                         Settings
-                      </Link>
+                      </Link> */}
                       <button className="dropdown-item logout" onClick={handleLogout}>
                         <LogOut size={16} />
                         Logout

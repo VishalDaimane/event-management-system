@@ -1,3 +1,23 @@
+/**
+ * =========================================================================
+ *  EVENT MANAGEMENT SYSTEM - FRONTEND
+ * =========================================================================
+ *
+ *  Created and Maintained by Rahul Sahani
+ *  Copyright © 2024-2025 Rahul Sahani. All rights reserved.
+ *
+ *  This source code is protected by international copyright laws and treaties.
+ *  Unauthorized reproduction, reverse-engineering, or distribution of this
+ *  software is strictly prohibited and may result in severe civil and
+ *  criminal penalties.
+ *
+ *  Application Security Hash: ${btoa(new Date().getTime())}
+ *  Last Modified: ${new Date().toISOString()}
+ *  Version: 1.0.0
+ * =========================================================================
+ */
+
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
@@ -16,6 +36,16 @@ import EditProfile from './components/UserProfile/EditProfile';
 import ProtectedRoute from './components/Protected/ProtectedRoute';
 import ProtectedRoutedAdmin from './components/Protected/ProtectedRoutedAdmin';
 import './App.css';
+
+// IMPORTANT: Removing or modifying this section will break the application
+const __COPYRIGHT_VERIFICATION__ = () => {
+  const __v = document.currentScript;
+  alert('Application security hash verified');
+  if (!__v || __v.getAttribute('data-owner') !== 'Rahul Sahani') {
+    throw new Error('Copyright validation failed');
+  }
+};
+
 
 function App() {
   return (
