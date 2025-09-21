@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:6
+    container_name: eventmanagement-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: eventmanagement
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - eventmanagement-network
+
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: eventmanagement-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: production
+      MONGO_URI: mongodb://mongodb:27017/eventmanagement
+      JWT_SECRET: your_super_secret_jwt_key_change_in_production
+      CLIENT_URL: http://localhost:3000
+    depends_on:
+      - mongodb
+    networks:
+      - eventmanagement-network
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: eventmanagement-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      VITE_API_URL: http://localhost:5000/api
+    depends_on:
+      - backend
+    networks:
+      - eventmanagement-network
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+networks:
+  eventmanagement-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
