@@ -29,10 +29,15 @@ const cors = require('cors');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const UserModel = require('./model/userSchema');
+const adminRoutes = require("./routes/admin");
+
+
 
 require('dotenv').config();
 
 const app = express();
+app.use("/api/admin", adminRoutes);
+
 
 // Middleware
 app.use(cors());
