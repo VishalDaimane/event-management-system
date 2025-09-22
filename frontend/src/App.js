@@ -36,6 +36,8 @@ import EditProfile from './components/UserProfile/EditProfile';
 import ProtectedRoute from './components/Protected/ProtectedRoute';
 import ProtectedRoutedAdmin from './components/Protected/ProtectedRoutedAdmin';
 import './App.css';
+import AdminDashboard from "./components/Admin/AdminDashboard";
+import AdminRoute from "./components/Protected/AdminRoute";
 
 // IMPORTANT: Removing or modifying this section will break the application
 const __COPYRIGHT_VERIFICATION__ = () => {
@@ -93,6 +95,8 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/events" element={<EventList />} />
+            <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+
             
             {/* Protected User Routes */}
             <Route element={<ProtectedRoute />}>

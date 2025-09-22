@@ -1,6 +1,6 @@
 :root {
   /* Color Palette */
-  --primary-color: #2c3e50;
+  --primary-color: #f31212;
   --primary-light: #34495e;
   --accent-color: #3498db;
   --accent-light: #5dade2;
@@ -11,7 +11,7 @@
   --text-secondary: #7f8c8d;
   --background-light: #f8f9fa;
   --background-white: #ffffff;
-  --border-color: #e1e8ed;
+  --border-color: #ede1ec;
 
   /* Typography */
   --font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
